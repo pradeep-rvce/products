@@ -1,0 +1,19 @@
+server.port: 6001
+server.error.include-message: always
+
+logging:
+  level:
+    root: INFO
+    com.handson.productservice.service: DEBUG
+
+spring:
+  application:
+    name: product-service
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+server:
+  port: 8080

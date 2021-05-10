@@ -1,0 +1,19 @@
+server.port: 6003
+server.error.include-message: always
+
+logging:
+  level:
+    root: INFO
+    com.handson.reviewservice.service: DEBUG
+
+spring:
+  application:
+    name: review-service
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+server:
+  port: 8080

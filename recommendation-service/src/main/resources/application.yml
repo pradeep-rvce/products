@@ -1,0 +1,19 @@
+server.port: 6002
+server.error.include-message: always
+
+logging:
+  level:
+    root: INFO
+    com.handson.recommendationservice.service: DEBUG
+
+spring:
+  application:
+    name: recommendation-service
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+server:
+  port: 8080
