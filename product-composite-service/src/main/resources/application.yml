@@ -1,29 +1,4 @@
-spring:
-  application:
-    name: product-composite-service
-
-server.port: 8080
-
-server.error.include-message: always
-
-logging:
-  level:
-    root: INFO
-    com.handson.productcompositeservice.service: DEBUG
-
-app:
-  product-service:
-    host: localhost
-    port: 6001
-  recommendation-service:
-    host: localhost
-    port: 6002
-  review-service:
-    host: localhost
-    port: 6003
-
 api:
-
   common:
     version: 1.0.0
     title: Sample API
@@ -31,14 +6,12 @@ api:
     termsOfServiceUrl: MINE TERMS OF SERVICE URL
     license: License
     licenseUrl: MY LICENSE URL
-
     contact:
       name: Contact
       url: My
       email: me@mail.com
 
   product-composite:
-
     get-composite-product:
       description: Returns a composite view of the specified product id
       notes: |
@@ -67,13 +40,55 @@ api:
         Entities for product information, recommendations and reviews related to the specificed productId will be deleted.
         The implementation of the delete method is idempotent, i.e. it can be called several times with the same response.
         This means that a delete request of a non existing product will return <b>200 Ok</b>.
+server.port: 8080
+server.error.include-message: always
+
+app:
+  product-service:
+    host: localhost
+    port: 7001
+  recommendation-service:
+    host: localhost
+    port: 7002
+  review-service:
+    host: localhost
+    port: 7003
+
+spring.cloud.stream:
+  defaultBinder: kafka
+  default.contentType: application/json
+  bindings:
+    output-products:
+      destination: products
+      producer:
+        required-groups: auditGroup
+    output-recommendations:
+      destination: recommendations
+      producer:
+        required-groups: auditGroup
+    output-reviews:
+      destination: reviews
+      producer:
+        required-groups: auditGroup
+
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092
+
+logging:
+  level:
+    root: INFO
+    com.handson.productcompositeservice: DEBUG
+
+management.endpoint.health.show-details: "ALWAYS"
+management.endpoints.web.exposure.include: "*"
+
 ---
 spring:
   config:
     activate:
       on-profile: docker
-server:
-  port: 8080
+server.port: 8080
 
 app:
   product-service:
@@ -85,3 +100,6 @@ app:
   review-service:
     host: review
     port: 8080
+
+
+spring.cloud.stream.kafka.binder.brokers: kafka

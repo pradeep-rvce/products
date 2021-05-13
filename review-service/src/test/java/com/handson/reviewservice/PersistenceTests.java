@@ -101,7 +101,7 @@ public class PersistenceTests {
 
         // Get the updated entity from the database and verify its new sate
         ReviewEntity updatedEntity = repository.findById(savedEntity.getId()).get();
-        assertEquals(1, updatedEntity.getVersion());
+        assertEquals(1, (int) updatedEntity.getVersion());
         assertEquals("a1", updatedEntity.getAuthor());
     }
 

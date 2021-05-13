@@ -19,7 +19,7 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 
 @SpringBootApplication
-@ComponentScan({"com.handson.api.cpre", "com.handson.util", "com.handson.productservice.service"})
+@ComponentScan({"com.handson.api", "com.handson.util", "com.handson.productservice"})
 public class ProductServiceApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductServiceApplication.class);

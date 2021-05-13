@@ -1,106 +1,139 @@
 package com.handson.productservice;
 
+import com.handson.api.cpre.event.Event;
 import com.handson.api.cpre.product.Product;
 import com.handson.productservice.persistence.ProductRepository;
+import com.handson.util.exception.InvalidInputException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.http.HttpStatus;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static com.handson.api.cpre.event.Event.Type.CREATE;
+import static com.handson.api.cpre.event.Event.Type.DELETE;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static reactor.core.publisher.Mono.just;
 
-
-@SpringBootTest(webEnvironment=RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.data.mongodb.port: 0"})
 public class ProductServiceApplicationTests {
+
+    private static WebTestClient client;
 
     @Autowired
     private ProductRepository repository;
 
+    @Autowired
+    private Sink channels;
+
+    private AbstractMessageChannel input = null;
+
+    @BeforeAll
+    public static void setUp(@Autowired WebTestClient client1) {
+        client = client1;
+    }
+
     @BeforeEach
     public void setupDb() {
-        repository.deleteAll();
+        input = (AbstractMessageChannel) channels.input();
+        repository.deleteAll().block();
     }
 
     @Test
-    public void getProductById(@Autowired WebTestClient client) {
+    public void getProductById() {
 
         int productId = 1;
 
-        postAndVerifyProduct(client, productId, OK);
+        assertNull(repository.findByProductId(productId).block());
+        assertEquals(0, (long) repository.count().block());
 
-        assertTrue(repository.findByProductId(productId).isPresent());
+        sendCreateProductEvent(productId);
 
-        getAndVerifyProduct(client, productId, OK)
+        assertNotNull(repository.findByProductId(productId).block());
+        assertEquals(1, (long) repository.count().block());
+
+        getAndVerifyProduct(productId, OK)
                 .jsonPath("$.productId").isEqualTo(productId);
     }
 
     @Test
-    public void duplicateError(@Autowired WebTestClient client) {
+    public void duplicateError() {
 
         int productId = 1;
 
-        postAndVerifyProduct(client, productId, OK);
+        assertNull(repository.findByProductId(productId).block());
 
-        assertTrue(repository.findByProductId(productId).isPresent());
+        sendCreateProductEvent(productId);
 
-        postAndVerifyProduct(client, productId, UNPROCESSABLE_ENTITY)
-                .jsonPath("$.path").isEqualTo("/product")
-                .jsonPath("$.message").isEqualTo("Duplicate key, Product Id: " + productId);
+        assertNotNull(repository.findByProductId(productId).block());
+
+        try {
+            sendCreateProductEvent(productId);
+            fail("Expected a MessagingException here!");
+        } catch (MessagingException me) {
+            if (me.getCause() instanceof InvalidInputException) {
+                InvalidInputException iie = (InvalidInputException) me.getCause();
+                assertEquals("Duplicate key, Product Id: " + productId, iie.getMessage());
+            } else {
+                fail("Expected a InvalidInputException as the root cause!");
+            }
+        }
     }
 
     @Test
-    public void deleteProduct(@Autowired WebTestClient client) {
+    public void deleteProduct() {
 
         int productId = 1;
 
-        postAndVerifyProduct(client, productId, OK);
-        assertTrue(repository.findByProductId(productId).isPresent());
+        sendCreateProductEvent(productId);
+        assertNotNull(repository.findByProductId(productId).block());
 
-        deleteAndVerifyProduct(client, productId, OK);
-        assertFalse(repository.findByProductId(productId).isPresent());
+        sendDeleteProductEvent(productId);
+        assertNull(repository.findByProductId(productId).block());
 
-        deleteAndVerifyProduct(client, productId, OK);
+        sendDeleteProductEvent(productId);
     }
 
     @Test
-    public void getProductInvalidParameterString(@Autowired WebTestClient client) {
+    public void getProductInvalidParameterString() {
 
-        getAndVerifyProduct(client, "/no-integer", BAD_REQUEST)
+        getAndVerifyProduct("/no-integer", BAD_REQUEST)
                 .jsonPath("$.path").isEqualTo("/product/no-integer")
                 .jsonPath("$.message").isEqualTo("Type mismatch.");
     }
 
     @Test
-    public void getProductNotFound(@Autowired WebTestClient client) {
+    public void getProductNotFound() {
 
         int productIdNotFound = 13;
-        getAndVerifyProduct(client, productIdNotFound, NOT_FOUND)
+        getAndVerifyProduct(productIdNotFound, NOT_FOUND)
                 .jsonPath("$.path").isEqualTo("/product/" + productIdNotFound)
                 .jsonPath("$.message").isEqualTo("No product found for productId: " + productIdNotFound);
     }
 
     @Test
-    public void getProductInvalidParameterNegativeValue(@Autowired WebTestClient client) {
+    public void getProductInvalidParameterNegativeValue() {
 
         int productIdInvalid = -1;
 
-        getAndVerifyProduct(client, productIdInvalid, UNPROCESSABLE_ENTITY)
+        getAndVerifyProduct(productIdInvalid, UNPROCESSABLE_ENTITY)
                 .jsonPath("$.path").isEqualTo("/product/" + productIdInvalid)
                 .jsonPath("$.message").isEqualTo("Invalid productId: " + productIdInvalid);
     }
 
-    private WebTestClient.BodyContentSpec getAndVerifyProduct(WebTestClient client, int productId, HttpStatus expectedStatus) {
-        return getAndVerifyProduct(client, "/" + productId, expectedStatus);
+    private WebTestClient.BodyContentSpec getAndVerifyProduct(int productId, HttpStatus expectedStatus) {
+        return getAndVerifyProduct("/" + productId, expectedStatus);
     }
 
-    private WebTestClient.BodyContentSpec getAndVerifyProduct(WebTestClient client, String productIdPath, HttpStatus expectedStatus) {
+    private WebTestClient.BodyContentSpec getAndVerifyProduct(String productIdPath, HttpStatus expectedStatus) {
         return client.get()
                 .uri("/product" + productIdPath)
                 .accept(APPLICATION_JSON)
@@ -110,25 +143,14 @@ public class ProductServiceApplicationTests {
                 .expectBody();
     }
 
-    private WebTestClient.BodyContentSpec postAndVerifyProduct(WebTestClient client, int productId, HttpStatus expectedStatus) {
+    private void sendCreateProductEvent(int productId) {
         Product product = new Product(productId, "Name " + productId, productId, "SA");
-        return client.post()
-                .uri("/product")
-                .body(just(product), Product.class)
-                .accept(APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isEqualTo(expectedStatus)
-                .expectHeader().contentType(APPLICATION_JSON)
-                .expectBody();
+        Event<Integer, Product> event = new Event(CREATE, productId, product);
+        input.send(new GenericMessage<>(event));
     }
 
-    private WebTestClient.BodyContentSpec deleteAndVerifyProduct(WebTestClient client, int productId, HttpStatus expectedStatus) {
-        return client.delete()
-                .uri("/product/" + productId)
-                .accept(APPLICATION_JSON)
-                .exchange()
-                .expectStatus().isEqualTo(expectedStatus)
-                .expectBody();
+    private void sendDeleteProductEvent(int productId) {
+        Event<Integer, Product> event = new Event(DELETE, productId, null);
+        input.send(new GenericMessage<>(event));
     }
-
 }

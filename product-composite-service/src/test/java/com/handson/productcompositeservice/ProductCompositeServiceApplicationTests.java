@@ -9,15 +9,15 @@ import com.handson.api.cpre.review.Review;
 import com.handson.productcompositeservice.service.ProductCompositeIntegration;
 import com.handson.util.exception.InvalidInputException;
 import com.handson.util.exception.NotFoundException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.when;
@@ -26,7 +26,6 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static reactor.core.publisher.Mono.just;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class ProductCompositeServiceApplicationTests {
 
@@ -37,15 +36,15 @@ public class ProductCompositeServiceApplicationTests {
     @MockBean
     private ProductCompositeIntegration compositeIntegration;
 
-    @Before
+    @BeforeEach
     public void setUp() {
 
         when(compositeIntegration.getProduct(PRODUCT_ID_OK)).
-                thenReturn(new Product(PRODUCT_ID_OK, "name", 1, "mock-address"));
+                thenReturn(Mono.just(new Product(PRODUCT_ID_OK, "name", 1, "mock-address")));
         when(compositeIntegration.getRecommendations(PRODUCT_ID_OK)).
-                thenReturn(singletonList(new Recommendation(PRODUCT_ID_OK, 1, "author", 1, "content", "mock address")));
+                thenReturn(Flux.just(new Recommendation(PRODUCT_ID_OK, 1, "author", 1, "content", "mock address")));
         when(compositeIntegration.getReviews(PRODUCT_ID_OK)).
-                thenReturn(singletonList(new Review(PRODUCT_ID_OK, 1, "author", "subject", "content", "mock address")));
+                thenReturn(Flux.just(new Review(PRODUCT_ID_OK, 1, "author", "subject", "content", "mock address")));
 
         when(compositeIntegration.getProduct(PRODUCT_ID_NOT_FOUND)).thenThrow(new NotFoundException("NOT FOUND: " + PRODUCT_ID_NOT_FOUND));
 

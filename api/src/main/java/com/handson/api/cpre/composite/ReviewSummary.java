@@ -1,9 +1,5 @@
 package com.handson.api.cpre.composite;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-
 public class ReviewSummary {
 
     private final int reviewId;

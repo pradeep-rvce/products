@@ -1,25 +1,34 @@
 package com.handson.productcompositeservice;
 
+import com.handson.productcompositeservice.service.ProductCompositeIntegration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.health.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
-import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2WebFlux;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static java.util.Collections.emptyList;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static springfox.documentation.builders.RequestHandlerSelectors.basePackage;
+import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
 
 @SpringBootApplication
 @EnableSwagger2WebFlux
 @ComponentScan({"com.handson.api.cpre", "com.handson.util", "com.handson.productcompositeservice"})
 public class ProductCompositeServiceApplication {
+
     @Value("${api.common.version}")
     String apiVersion;
     @Value("${api.common.title}")
@@ -39,32 +48,79 @@ public class ProductCompositeServiceApplication {
     @Value("${api.common.contact.email}")
     String apiContactEmail;
 
+    @Autowired
+    StatusAggregator healthAggregator;
+    @Autowired
+    ProductCompositeIntegration integration;
+    @Autowired
+    RecommendationHealthIndicator recommendationHealthIndicator;
+    @Autowired
+    ReviewHealthIndicator reviewHealthIndicator;
+    @Autowired
+    ProductHealthIndicator productHealthIndicator;
+
     public static void main(String[] args) {
         SpringApplication.run(ProductCompositeServiceApplication.class, args);
     }
 
-    @Bean
-    RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
-
+    /**
+     * Will exposed on $HOST:$PORT/swagger-ui.html
+     *
+     * @return
+     */
     @Bean
     public Docket apiDocumentation() {
-        return new Docket(DocumentationType.SWAGGER_2)
+
+        return new Docket(SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.any())
+                .apis(basePackage("se.magnus.microservices.composite.product"))
                 .paths(PathSelectors.any())
                 .build()
+                .globalResponseMessage(POST, emptyList())
+                .globalResponseMessage(GET, emptyList())
+                .globalResponseMessage(DELETE, emptyList())
                 .apiInfo(new ApiInfo(
                         apiTitle,
                         apiDescription,
                         apiVersion,
                         apiTermsOfServiceUrl,
-                        new Contact(apiContactName, apiContactUrl,
-                                apiContactEmail),
+                        new Contact(apiContactName, apiContactUrl, apiContactEmail),
                         apiLicense,
                         apiLicenseUrl,
                         emptyList()
                 ));
+    }
+
+    @Bean
+    ReactiveHealthContributor coreServices() {
+        Map<String, ReactiveHealthIndicator> registry = new HashMap<>();
+        registry.put("product", productHealthIndicator);
+        registry.put("recommendation", recommendationHealthIndicator);
+        registry.put("review", reviewHealthIndicator);
+        return CompositeReactiveHealthContributor.fromMap(registry);
+    }
+
+    @Component
+    class ProductHealthIndicator implements ReactiveHealthIndicator {
+        @Override
+        public Mono<Health> health() {
+            return integration.getProductHealth();
+        }
+    }
+
+    @Component
+    class RecommendationHealthIndicator implements ReactiveHealthIndicator {
+        @Override
+        public Mono<Health> health() {
+            return integration.getRecommendationHealth();
+        }
+    }
+
+    @Component
+    class ReviewHealthIndicator implements ReactiveHealthIndicator {
+        @Override
+        public Mono<Health> health() {
+            return integration.getReviewHealth();
+        }
     }
 }

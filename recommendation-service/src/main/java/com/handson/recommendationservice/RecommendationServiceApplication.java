@@ -19,7 +19,7 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 
 @SpringBootApplication
-@ComponentScan({"com.handson.api.cpre", "com.handson.util", "com.handson.recommendationservice"})
+@ComponentScan({"com.handson.api", "com.handson.util", "com.handson.recommendationservice"})
 public class RecommendationServiceApplication {
 
     private static final Logger LOG = LoggerFactory.getLogger(RecommendationServiceApplication.class);
@@ -41,7 +41,7 @@ public class RecommendationServiceApplication {
         IndexResolver resolver = new MongoPersistentEntityIndexResolver(mappingContext);
 
         IndexOperations indexOps = mongoTemplate.indexOps(RecommendationEntity.class);
-        resolver.resolveIndexFor(RecommendationEntity.class).forEach(e -> indexOps.ensureIndex(e));
+        resolver.resolveIndexFor(RecommendationEntity.class).forEach(indexOps::ensureIndex);
     }
 
 }
