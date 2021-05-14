@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.health.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -122,5 +125,13 @@ public class ProductCompositeServiceApplication {
         public Mono<Health> health() {
             return integration.getReviewHealth();
         }
+    }
+
+    @Bean("eur")
+    @Primary
+    @LoadBalanced
+    public WebClient.Builder loadBalancedWebClientBuilder() {
+        final WebClient.Builder builder = WebClient.builder();
+        return builder;
     }
 }

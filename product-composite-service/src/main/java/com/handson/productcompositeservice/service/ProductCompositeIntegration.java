@@ -14,7 +14,7 @@ import com.handson.util.exceptionHandler.HttpErrorInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.Output;
@@ -36,39 +36,22 @@ import static reactor.core.publisher.Flux.empty;
 @EnableBinding(ProductCompositeIntegration.MessageSources.class)
 public class ProductCompositeIntegration implements ProductService, RecommendationService, ReviewService {
     private static final Logger LOG = LoggerFactory.getLogger(ProductCompositeIntegration.class);
-
-    private final WebClient webClient;
     private final ObjectMapper mapper;
-
-    private final String productServiceUrl;
-    private final String recommendationServiceUrl;
-    private final String reviewServiceUrl;
-
+    private final String productServiceUrl = "http://product";
+    private final String recommendationServiceUrl = "http://recommendation";
+    private final String reviewServiceUrl = "http://review";
+    private WebClient webClient;
     private MessageSources messageSources;
 
     @Autowired
     public ProductCompositeIntegration(
-            WebClient.Builder webClient,
+            @Qualifier("eur") WebClient.Builder builder,
             ObjectMapper mapper,
-            MessageSources messageSources,
-
-            @Value("${app.product-service.host}") String productServiceHost,
-            @Value("${app.product-service.port}") int productServicePort,
-
-            @Value("${app.recommendation-service.host}") String recommendationServiceHost,
-            @Value("${app.recommendation-service.port}") int recommendationServicePort,
-
-            @Value("${app.review-service.host}") String reviewServiceHost,
-            @Value("${app.review-service.port}") int reviewServicePort
+            MessageSources messageSources
     ) {
-
-        this.webClient = webClient.build();
+        this.webClient = builder.build();
         this.mapper = mapper;
         this.messageSources = messageSources;
-
-        productServiceUrl = "http://" + productServiceHost + ":" + productServicePort;
-        recommendationServiceUrl = "http://" + recommendationServiceHost + ":" + recommendationServicePort;
-        reviewServiceUrl = "http://" + reviewServiceHost + ":" + reviewServicePort;
     }
 
     @Override
@@ -189,7 +172,6 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     }
 
     public interface MessageSources {
-
         String OUTPUT_PRODUCTS = "output-products";
         String OUTPUT_RECOMMENDATIONS = "output-recommendations";
         String OUTPUT_REVIEWS = "output-reviews";

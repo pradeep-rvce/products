@@ -18,5 +18,6 @@
     <module>review-service</module>
     <module>recommendation-service</module>
     <module>product-composite-service</module>
+    <module>product-eureka</module>
   </modules>
 </project>

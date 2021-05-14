@@ -36,6 +36,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(Product body) {
+        LOG.info("createProduct: entity created for productId: {}", body.getProductId());
+
         try {
             ProductEntity entity = mapper.apiToEntity(body);
             ProductEntity newEntity = repository.save(entity).block();
@@ -50,6 +52,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Mono<Product> getProduct(int productId) {
+        LOG.info("getProduct: {}", productId);
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
@@ -65,6 +68,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(int productId) {
+        LOG.info("deleteProduct: {}", productId);
+
         LOG.debug("deleteProduct: tries to delete an entity with productId: {}", productId);
         repository.findByProductId(productId)
                 .log()
@@ -72,6 +77,5 @@ public class ProductServiceImpl implements ProductService {
                 .block();
 
 
-        ;
     }
 }

@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
 
 @DataMongoTest
+@ActiveProfiles("test")
 public class ProductEntityRepositoryTests {
 
     @Autowired

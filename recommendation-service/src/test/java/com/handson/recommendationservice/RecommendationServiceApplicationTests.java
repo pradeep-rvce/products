@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static com.handson.api.cpre.event.Event.Type.CREATE;
@@ -26,6 +27,7 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.data.mongodb.port: 0"})
+@ActiveProfiles("test")
 public class RecommendationServiceApplicationTests {
 
     private static WebTestClient client;
