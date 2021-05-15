@@ -20,5 +20,6 @@
     <module>product-composite-service</module>
     <module>product-eureka</module>
     <module>product-egde</module>
+    <module>authorization-server</module>
   </modules>
 </project>

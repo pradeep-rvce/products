@@ -8,6 +8,7 @@ services:
     depends_on:
       - mongodb
       - kafka
+      - eureka
   recommendation:
     build: recommendation-service
     mem_limit: 350m
@@ -16,6 +17,7 @@ services:
     depends_on:
       - mongodb
       - kafka
+      - eureka
   review:
     build: review-service
     mem_limit: 350m
@@ -24,6 +26,7 @@ services:
     depends_on:
       - mysql
       - kafka
+      - eureka
   product-composite:
     build: product-composite-service
     mem_limit: 350m
@@ -33,18 +36,29 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - kafka
+      - eureka
 
   eureka:
     build: product-eureka
     mem_limit: 350m
-
+    ports:
+      - "8761:8761"
   gateway:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     build: product-edge
     mem_limit: 350m
     ports:
-      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      - eureka
+  auth-server:
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    build: authorization-server
+    mem_limit: 350m
+    depends_on:
+      - eureka
 
   mongodb:
     image: mongo:3.6.9
@@ -52,6 +66,11 @@ services:
     ports:
       - "27017:27017"
     command: mongod --smallfiles
+    healthcheck:
+      test: "mongo --eval 'db.stats().ok'"
+      interval: 20s
+      timeout: 5s
+      retries: 10
   mysql:
     image: mysql:5.7
     mem_limit: 350m

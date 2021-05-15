@@ -74,7 +74,7 @@ management.endpoints.web.exposure.include: "*"
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://u:p@localhost:8761/eureka/
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:
@@ -87,15 +87,26 @@ ribbon.NFLoadBalancerPingInterval: 5
 spring:
   application:
     name: product-composite
-    
+
+app:
+  eureka-server: localhost
+  auth-server: localhost
+
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://${app.auth-server}:9999/.well-known/jwks.json
+
+
 ---
 spring:
   config:
     activate:
       on-profile: docker
 
+app:
+  eureka-server: eureka
+  auth-server: auth-server
+
 server.port: 8080
 
-eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/
+eureka.client.serviceUrl.defaultZone: http://u:p@eureka:8761/eureka/
 
 spring.cloud.stream.kafka.binder.brokers: kafka

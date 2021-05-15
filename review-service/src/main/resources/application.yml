@@ -44,7 +44,7 @@ management.endpoints.web.exposure.include: "*"
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://u:p@localhost:8761/eureka/
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:
@@ -56,7 +56,7 @@ spring:
     name: review
 ---
 
-eureka.client.serviceUrl.defaultZone: http://eureka:8761/eureka/
+eureka.client.serviceUrl.defaultZone: http://u:p@eureka:8761/eureka/
 
 
 spring:
