@@ -19,5 +19,6 @@
     <module>recommendation-service</module>
     <module>product-composite-service</module>
     <module>product-eureka</module>
+    <module>product-egde</module>
   </modules>
 </project>

@@ -87,6 +87,7 @@ ribbon.NFLoadBalancerPingInterval: 5
 spring:
   application:
     name: product-composite
+    
 ---
 spring:
   config:
