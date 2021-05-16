@@ -8,25 +8,28 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = {"spring.cloud.config.enabled=false"})
+@ActiveProfiles("test")
 public class EurekaServerApplicationTests {
+
+    @Test
+    public void contextLoads() {
+    }
 
     @Value("${app.eureka-username}")
     private String username;
+
     @Value("${app.eureka-password}")
     private String password;
 
     @Autowired
     public void setTestRestTemplate(TestRestTemplate testRestTemplate) {
         this.testRestTemplate = testRestTemplate.withBasicAuth(username, password);
-    }
-
-    @Test
-    public void contextLoads() {
     }
 
     private TestRestTemplate testRestTemplate;

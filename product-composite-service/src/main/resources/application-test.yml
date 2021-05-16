@@ -1,3 +1,21 @@
 eureka:
   client:
     enabled: false
+
+security:
+  basic:
+    enabled: false
+
+api:
+  common:
+    version:
+    title:
+    description:
+    termsOfServiceUrl:
+    license:
+    licenseUrl:
+
+    contact:
+      name:
+      url:
+      email:

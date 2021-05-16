@@ -11,7 +11,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
 
-@DataMongoTest
+@DataMongoTest(properties = {"spring.cloud.config.enabled=false"})
 @ActiveProfiles("test")
 public class ProductEntityRepositoryTests {
 
