@@ -1,11 +1,8 @@
-server.port: 9999
-
-spring.application.name: auth-server
-
 app:
   eureka-username: u
-  eureka-password: p
+  eureka-password: '{cipher}bf298f6d5f878b342f9e44bec08cb9ac00b4ce57e98316f030194a225fac89fb'
   eureka-server: localhost
+  auth-server: localhost
 
 eureka:
   client:
@@ -17,12 +14,19 @@ eureka:
     leaseRenewalIntervalInSeconds: 5
     leaseExpirationDurationInSeconds: 5
 
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092
+
+# WARNING: Exposing all management endpoints over http should only be used during development, must be locked down in production!
 management.endpoint.health.show-details: "ALWAYS"
 management.endpoints.web.exposure.include: "*"
-
-# security.oauth2.authorizationserver.jwt.enabled: false
 
 ---
 spring.profiles: docker
 
-app.eureka-server: eureka
+spring.cloud.stream.kafka.binder.brokers: kafka
+
+app:
+  eureka-server: eureka
+  auth-server: auth-server
