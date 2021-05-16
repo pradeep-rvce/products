@@ -48,6 +48,7 @@ public class ProductCompositeServiceApplication {
 
     @Autowired
     StatusAggregator healthAggregator;
+
     @Autowired
     ProductCompositeIntegration integration;
 

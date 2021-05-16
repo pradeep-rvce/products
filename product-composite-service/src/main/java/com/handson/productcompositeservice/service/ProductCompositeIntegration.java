@@ -11,10 +11,13 @@ import com.handson.api.cpre.review.ReviewService;
 import com.handson.util.exception.InvalidInputException;
 import com.handson.util.exception.NotFoundException;
 import com.handson.util.exceptionHandler.HttpErrorInfo;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.messaging.MessageChannel;
@@ -22,10 +25,13 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.net.URI;
+import java.time.Duration;
 
 import static com.handson.api.cpre.event.Event.Type.CREATE;
 import static com.handson.api.cpre.event.Event.Type.DELETE;
@@ -41,16 +47,20 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     private final String reviewServiceUrl = "http://review";
     private WebClient webClient;
     private MessageSources messageSources;
+    private int productServiceTimeoutSec;
+
 
     @Autowired
     public ProductCompositeIntegration(
             @Qualifier("eur") WebClient.Builder builder,
             ObjectMapper mapper,
-            MessageSources messageSources
+            MessageSources messageSources,
+            @Value("${app.product-service.timeoutSec}") int productServiceTimeoutSec
     ) {
         this.webClient = builder.build();
         this.mapper = mapper;
         this.messageSources = messageSources;
+        this.productServiceTimeoutSec = productServiceTimeoutSec;
     }
 
     @Override
@@ -59,12 +69,18 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
         return body;
     }
 
+    @Retry(name = "product")
+    @CircuitBreaker(name = "product")
     @Override
-    public Mono<Product> getProduct(int productId) {
-        String url = productServiceUrl + "/product/" + productId;
+    public Mono<Product> getProduct(int productId, int delay, int faultPercent) {
+        URI url = UriComponentsBuilder.fromUriString(productServiceUrl + "/product/{productId}?delay={delay}&faultPercent={faultPercent}").build(productId, delay, faultPercent);
         LOG.debug("Will call the getProduct API on URL: {}", url);
 
-        return webClient.get().uri(url).retrieve().bodyToMono(Product.class).log().onErrorMap(WebClientResponseException.class, ex -> handleException(ex));
+        return webClient.get().uri(url)
+                .retrieve().bodyToMono(Product.class)
+                .log()
+                .onErrorMap(WebClientResponseException.class, this::handleException)
+                .timeout(Duration.ofSeconds(productServiceTimeoutSec));
     }
 
     @Override

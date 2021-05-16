@@ -14,6 +14,8 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.Random;
+
 import static reactor.core.publisher.Mono.error;
 
 @RestController
@@ -36,46 +38,69 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(Product body) {
-        LOG.info("createProduct: entity created for productId: {}", body.getProductId());
 
-        try {
-            ProductEntity entity = mapper.apiToEntity(body);
-            ProductEntity newEntity = repository.save(entity).block();
+        if (body.getProductId() < 1) throw new InvalidInputException("Invalid productId: " + body.getProductId());
 
-            LOG.debug("createProduct: entity created for productId: {}", body.getProductId());
-            return mapper.entityToApi(newEntity);
+        ProductEntity entity = mapper.apiToEntity(body);
+        Mono<Product> newEntity = repository.save(entity)
+                .log()
+                .onErrorMap(
+                        DuplicateKeyException.class,
+                        ex -> new InvalidInputException("Duplicate key, Product Id: " + body.getProductId()))
+                .map(mapper::entityToApi);
 
-        } catch (DuplicateKeyException dke) {
-            throw new InvalidInputException("Duplicate key, Product Id: " + body.getProductId());
-        }
+        return newEntity.block();
     }
 
     @Override
-    public Mono<Product> getProduct(int productId) {
-        LOG.info("getProduct: {}", productId);
+    public Mono<Product> getProduct(int productId, int delay, int faultPercent) {
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
+
+        if (delay > 0) simulateDelay(delay);
+
+        if (faultPercent > 0) throwErrorIfBadLuck(faultPercent);
 
         return repository.findByProductId(productId)
                 .switchIfEmpty(error(new NotFoundException("No product found for productId: " + productId)))
                 .log()
-                .map(mapper::entityToApi)
-                .map(e -> {
-                    e.setServiceAddress(serviceUtil.getServiceAddress());
-                    return e;
-                });
+                .map(e -> mapper.entityToApi(e))
+                .map(e -> {e.setServiceAddress(serviceUtil.getServiceAddress()); return e;});
     }
 
     @Override
     public void deleteProduct(int productId) {
-        LOG.info("deleteProduct: {}", productId);
+
+        if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
         LOG.debug("deleteProduct: tries to delete an entity with productId: {}", productId);
-        repository.findByProductId(productId)
-                .log()
-                .flatMap(repository::delete)
-                .block();
-
-
+        repository.findByProductId(productId).log().map(e -> repository.delete(e)).flatMap(e -> e).block();
     }
+
+    private void simulateDelay(int delay) {
+        LOG.debug("Sleeping for {} seconds...", delay);
+        try {Thread.sleep(delay * 1000);} catch (InterruptedException e) {}
+        LOG.debug("Moving on...");
+    }
+
+    private void throwErrorIfBadLuck(int faultPercent) {
+        int randomThreshold = getRandomNumber(1, 100);
+        if (faultPercent < randomThreshold) {
+            LOG.debug("We got lucky, no error occurred, {} < {}", faultPercent, randomThreshold);
+        } else {
+            LOG.debug("Bad luck, an error occurred, {} >= {}", faultPercent, randomThreshold);
+            throw new RuntimeException("Something went wrong...");
+        }
+    }
+
+    private final Random randomNumberGenerator = new Random();
+    private int getRandomNumber(int min, int max) {
+
+        if (max < min) {
+            throw new RuntimeException("Max must be greater than min");
+        }
+
+        return randomNumberGenerator.nextInt((max - min) + 1) + min;
+    }
+
 }

@@ -6,6 +6,8 @@ security:
   basic:
     enabled: false
 
+management.health.circuitbreakers.enabled: true
+
 api:
   common:
     version:
