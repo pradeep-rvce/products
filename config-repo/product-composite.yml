@@ -78,7 +78,7 @@ logging:
     root: INFO
     se.magnus: DEBUG
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
-    
+
 app.product-service.timeoutSec: 2
 
 resilience4j.retry:
@@ -101,8 +101,8 @@ resilience4j.circuitbreaker:
       ringBufferSizeInHalfOpenState: 3
       automaticTransitionFromOpenToHalfOpenEnabled: true
       ignoreExceptions:
-        - se.magnus.util.exceptions.InvalidInputException
-        - se.magnus.util.exceptions.NotFoundException
+        - com.handson.util.exception.InvalidInputException
+        - com.handson.util.exception.NotFoundException
 
 ---
 spring:

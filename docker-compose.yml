@@ -50,6 +50,7 @@ services:
       - eureka
       - config-server
 
+
   eureka:
     build: product-eureka
     mem_limit: 350m
@@ -96,6 +97,16 @@ services:
     build: config-server
     mem_limit: 350m
 
+  zipkin:
+    image: openzipkin/zipkin:2.12.9
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - STORAGE_TYPE=mem
+    mem_limit: 512m
+    ports:
+      - 9411:9411
+    depends_on:
+      - kafka
 
   mongodb:
     image: mongo:3.6.9
@@ -135,6 +146,7 @@ services:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
     depends_on:
       - zookeeper
+
   zookeeper:
     image: wurstmeister/zookeeper:latest
     mem_limit: 350m

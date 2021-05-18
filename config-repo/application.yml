@@ -27,6 +27,10 @@ spring.profiles: docker
 
 spring.cloud.stream.kafka.binder.brokers: kafka
 
+spring.zipkin.sender.type: kafka
+spring.sleuth.sampler.probability: 1.0
+spring.kafka.bootstrap-servers: kafka:9092
+
 app:
   eureka-server: eureka
   auth-server: auth-server
