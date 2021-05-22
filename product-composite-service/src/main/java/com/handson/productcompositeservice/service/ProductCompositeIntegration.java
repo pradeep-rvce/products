@@ -12,6 +12,7 @@ import com.handson.util.exception.InvalidInputException;
 import com.handson.util.exception.NotFoundException;
 import com.handson.util.exceptionHandler.HttpErrorInfo;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
     @Override
     public Product createProduct(Product body) {
-        messageSources.outputProducts().send(MessageBuilder.withPayload(new Event(CREATE, body.getProductId(), body)).build());
+        messageSources.outputProducts().send(MessageBuilder.withPayload(new Event<>(CREATE, body.getProductId(), body)).build());
         return body;
     }
 
@@ -77,7 +78,8 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
         LOG.debug("Will call the getProduct API on URL: {}", url);
 
         return webClient.get().uri(url)
-                .retrieve().bodyToMono(Product.class)
+                .retrieve()
+                .bodyToMono(Product.class)
                 .log()
                 .onErrorMap(WebClientResponseException.class, this::handleException)
                 .timeout(Duration.ofSeconds(productServiceTimeoutSec));

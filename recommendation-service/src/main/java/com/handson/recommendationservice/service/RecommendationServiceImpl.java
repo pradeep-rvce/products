@@ -32,6 +32,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public Recommendation createRecommendation(Recommendation body) {
+        LOG.info(" createRecommendation {}", body);
         if (body.getProductId() < 1) throw new InvalidInputException("Invalid productId: " + body.getProductId());
         return repository.save(mapper.apiToEntity(body))
                 .log()
@@ -44,6 +45,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public Flux<Recommendation> getRecommendations(int productId) {
+        LOG.info(" getRecommendations {}", productId);
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
         return repository.findByProductId(productId)
                 .log()
@@ -56,6 +58,8 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public void deleteRecommendations(int productId) {
+        LOG.info(" deleteRecommendations {}", productId);
+
         LOG.debug("deleteRecommendations: tries to delete recommendations for the product with productId: {}", productId);
         repository.deleteAll(repository.findByProductId(productId)).block();
     }

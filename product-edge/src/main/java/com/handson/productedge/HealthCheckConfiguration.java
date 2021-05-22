@@ -28,6 +28,10 @@ public class HealthCheckConfiguration {
         webClient = webClientBuilder.build();
     }
 
+    private static Health apply(String s) {
+        return new Health.Builder().up().build();
+    }
+
     @Bean
     ReactiveHealthContributor coreServices() {
         Map<String, ReactiveHealthIndicator> registry = new HashMap<>();
@@ -43,7 +47,7 @@ public class HealthCheckConfiguration {
         url += "/actuator/health";
         LOG.debug("Will call the Health API on URL: {}", url);
         return webClient.get().uri(url).retrieve().bodyToMono(String.class)
-                .map(s -> new Health.Builder().up().build())
+                .map(HealthCheckConfiguration::apply)
                 .onErrorResume(ex -> Mono.just(new Health.Builder().down(ex).build()))
                 .log();
     }

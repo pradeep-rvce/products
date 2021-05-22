@@ -35,7 +35,7 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
 
     @Override
     public void createCompositeProduct(ProductAggregate body) {
-
+LOG.info("createCompositeProduct {}", body);
         try {
             LOG.debug("createCompositeProduct: creates a new composite entity for productId: {}", body.getProductId());
 
@@ -66,6 +66,7 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
 
     @Override
     public Mono<ProductAggregate> getCompositeProduct(int productId, int delay, int faultPercent) {
+        LOG.info("getCompositeProduct {}", productId);
         return Mono.zip(
                 values -> createProductAggregate((Product) values[0], (List<Recommendation>) values[1], (List<Review>) values[2], serviceUtil.getServiceAddress()),
                 integration.getProduct(productId, delay, faultPercent)
@@ -77,6 +78,7 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     }
 
     private Product getProductFallbackValue(int productId) {
+        LOG.info("getProductFallbackValue {}", productId);
 
         LOG.warn("Creating a fallback product for productId = {}", productId);
 
@@ -91,6 +93,8 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
 
     @Override
     public void deleteCompositeProduct(int productId) {
+        LOG.info("deleteCompositeProduct {}", productId);
+
         try {
 
             LOG.debug("deleteCompositeProduct: Deletes a product aggregate for productId: {}", productId);
@@ -108,6 +112,7 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     }
 
     private ProductAggregate createProductAggregate(Product product, List<Recommendation> recommendations, List<Review> reviews, String serviceAddress) {
+        LOG.info("createProductAggregate {}", product);
 
         // 1. Setup product info
         int productId = product.getProductId();

@@ -38,7 +38,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(Product body) {
-
+        LOG.info("createProduct {}", body);
         if (body.getProductId() < 1) throw new InvalidInputException("Invalid productId: " + body.getProductId());
 
         ProductEntity entity = mapper.apiToEntity(body);
@@ -54,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Mono<Product> getProduct(int productId, int delay, int faultPercent) {
-
+        LOG.info("getProduct {}", productId);
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
         if (delay > 0) simulateDelay(delay);
@@ -64,22 +64,29 @@ public class ProductServiceImpl implements ProductService {
         return repository.findByProductId(productId)
                 .switchIfEmpty(error(new NotFoundException("No product found for productId: " + productId)))
                 .log()
-                .map(e -> mapper.entityToApi(e))
-                .map(e -> {e.setServiceAddress(serviceUtil.getServiceAddress()); return e;});
+                .map(mapper::entityToApi)
+                .map(e -> {
+                    e.setServiceAddress(serviceUtil.getServiceAddress());
+                    return e;
+                });
     }
 
     @Override
     public void deleteProduct(int productId) {
+        LOG.info("deleteProduct {}", productId);
 
         if (productId < 1) throw new InvalidInputException("Invalid productId: " + productId);
 
         LOG.debug("deleteProduct: tries to delete an entity with productId: {}", productId);
-        repository.findByProductId(productId).log().map(e -> repository.delete(e)).flatMap(e -> e).block();
+        repository.findByProductId(productId).log().map(repository::delete).flatMap(e -> e).block();
     }
 
     private void simulateDelay(int delay) {
         LOG.debug("Sleeping for {} seconds...", delay);
-        try {Thread.sleep(delay * 1000);} catch (InterruptedException e) {}
+        try {
+            Thread.sleep(delay * 1000);
+        } catch (InterruptedException e) {
+        }
         LOG.debug("Moving on...");
     }
 
@@ -94,6 +101,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private final Random randomNumberGenerator = new Random();
+
     private int getRandomNumber(int min, int max) {
 
         if (max < min) {

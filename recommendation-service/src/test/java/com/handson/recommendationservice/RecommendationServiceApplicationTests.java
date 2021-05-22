@@ -62,7 +62,7 @@ public class RecommendationServiceApplicationTests {
 
         assertEquals(3, (long) repository.findByProductId(productId).count().block());
 
-        getAndVerifyRecommendationsByProductId(productId, OK)
+        getAndVerifyRecommendationsByProductId(121, OK)
                 .jsonPath("$.length()").isEqualTo(3)
                 .jsonPath("$[2].productId").isEqualTo(productId)
                 .jsonPath("$[2].recommendationId").isEqualTo(3);
