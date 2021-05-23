@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: review
+  template:
+    metadata:
+      labels:
+        app: review
+    spec:
+      containers:
+      - name: rev
+        image: handsonwk/review-service
+        imagePullPolicy: Never
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "docker"
+        - name: SPRING_CONFIG_LOCATION
+          value: file:/config-repo/application.yml,file:/config-repo/review.yml
+        envFrom:
+        - secretRef:
+            name: mysql-credentials
+        volumeMounts:
+        - name: config-repo-volume
+          mountPath: /config-repo
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: 350Mi
+      volumes:
+      - name: config-repo-volume
+        configMap:
+          name: config-repo-review
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review
+spec:
+  selector:
+    app: review
+  ports:
+    - port: 80
+      targetPort: 80

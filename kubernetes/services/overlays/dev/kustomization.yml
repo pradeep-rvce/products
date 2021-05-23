@@ -1,0 +1,7 @@
+bases:
+- ../../base
+resources:
+- zookeeper-dev.yml
+- mongodb-dev.yml
+- kafka-dev.yml
+- mysql-dev.yml

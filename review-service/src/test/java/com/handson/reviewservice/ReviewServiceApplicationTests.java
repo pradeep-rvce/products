@@ -26,7 +26,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"spring.datasource.url=jdbc:h2:mem:review-db", "spring.data.mongodb.port: 0", "spring.cloud.config.enabled=false", "server.error.include-message=always"})
+@SpringBootTest(webEnvironment=RANDOM_PORT, properties = {"spring.datasource.url=jdbc:h2:mem:review-db", "spring.data.mongodb.port: 0", "server.error.include-message=always"})
 @ActiveProfiles("test")
 public class ReviewServiceApplicationTests {
 

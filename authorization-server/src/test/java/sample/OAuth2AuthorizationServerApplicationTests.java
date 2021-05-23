@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author Josh Cummings
  */
-@SpringBootTest(properties = {"spring.cloud.config.enabled=false"})
+@SpringBootTest
 @AutoConfigureMockMvc
 public class OAuth2AuthorizationServerApplicationTests {
 

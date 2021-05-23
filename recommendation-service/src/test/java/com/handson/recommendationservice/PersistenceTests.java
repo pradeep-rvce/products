@@ -14,7 +14,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataMongoTest(properties = {"spring.cloud.config.enabled=false"})
+@DataMongoTest
 public class PersistenceTests {
 
     @Autowired
