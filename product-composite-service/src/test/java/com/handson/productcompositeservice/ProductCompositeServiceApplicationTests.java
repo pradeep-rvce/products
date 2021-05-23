@@ -31,7 +31,7 @@ import static reactor.core.publisher.Mono.just;
 @SpringBootTest(
         webEnvironment=RANDOM_PORT,
         classes = {ProductCompositeServiceApplication.class, TestConfig.class},
-        properties = {"spring.data.mongodb.port: 0", "eureka.client.enabled=false", "spring.cloud.config.enabled=false", "server.error.include-message=always", "spring.main.allow-bean-definition-overriding=true"})
+        properties = {"spring.data.mongodb.port: 0","spring.cloud.config.enabled=false", "server.error.include-message=always", "spring.main.allow-bean-definition-overriding=true"})
 @ActiveProfiles("test")
 public class ProductCompositeServiceApplicationTests {
 

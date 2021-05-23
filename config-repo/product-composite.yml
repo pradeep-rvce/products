@@ -60,18 +60,12 @@ spring.cloud.stream:
   bindings:
     output-products:
       destination: products
-      producer:
-        required-groups: auditGroup
     output-recommendations:
       destination: recommendations
-      producer:
-        required-groups: auditGroup
     output-reviews:
       destination: reviews
-      producer:
-        required-groups: auditGroup
 
-spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://${app.auth-server}:9999/.well-known/jwks.json
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://${app.auth-server}:80/.well-known/jwks.json
 
 logging:
   level:
@@ -110,4 +104,4 @@ spring:
     activate:
       on-profile: docker
 
-server.port: 8080
+server.port: 80

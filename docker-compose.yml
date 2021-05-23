@@ -2,6 +2,7 @@ version: '2.1'
 services:
   product:
     build: product-service
+    image: handsonwk/product-service
     mem_limit: 350m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -10,10 +11,10 @@ services:
     depends_on:
       - mongodb
       - kafka
-      - eureka
       - config-server
   recommendation:
     build: recommendation-service
+    image: handsonwk/recommendation-service
     mem_limit: 350m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -22,10 +23,10 @@ services:
     depends_on:
       - mongodb
       - kafka
-      - eureka
       - config-server
   review:
     build: review-service
+    image: handsonwk/review-service
     mem_limit: 350m
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -34,10 +35,10 @@ services:
     depends_on:
       - mysql
       - kafka
-      - eureka
       - config-server
   product-composite:
     build: product-composite-service
+    image: handsonwk/product-composite-service
     mem_limit: 350m
     ports:
       - "8085:8080"
@@ -47,32 +48,19 @@ services:
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     depends_on:
       - kafka
-      - eureka
       - config-server
 
-
-  eureka:
-    build: product-eureka
-    mem_limit: 350m
-    ports:
-      - "8761:8761"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
-      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
-    depends_on:
-      - config-server
   gateway:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     build: product-edge
+    image: handsonwk/product-edge
     mem_limit: 350m
     ports:
       - "8443:8443"
     depends_on:
-      - eureka
       - config-server
   auth-server:
     environment:
@@ -80,9 +68,9 @@ services:
       - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     build: authorization-server
+    image: handsonwk/authorization-server
     mem_limit: 350m
     depends_on:
-      - eureka
       - config-server
   config-server:
     environment:
@@ -95,6 +83,7 @@ services:
     volumes:
       - $PWD/config-repo:/config-repo
     build: config-server
+    image: handsonwk/config-server
     mem_limit: 350m
 
   zipkin:
