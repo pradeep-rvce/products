@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  selector:
+    matchLabels:
+      run: prometheus
+  template:
+    metadata:
+      labels:
+        run: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.26.1
+        ports:
+        - containerPort: 9090
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: prometheus
+          mountPath: /etc/prometheus/
+      volumes:
+      - name: prometheus
+        configMap:
+          name: "prometheus"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  labels:
+    service: prometheus
+spec:
+  type: NodePort
+  selector:
+    run: prometheus
+  ports:
+  - port: 9090
+    targetPort: 9090
