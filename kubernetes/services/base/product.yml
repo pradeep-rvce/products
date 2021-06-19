@@ -20,7 +20,7 @@ spec:
         - name: SPRING_PROFILES_ACTIVE
           value: "docker"
         - name: SPRING_APPLICATION_NAME
-          value: product          
+          value: product
         - name: SPRING_CONFIG_LOCATION
           value: file:/config-repo/application.yml,file:/config-repo/product.yml
         envFrom:
@@ -45,8 +45,13 @@ kind: Service
 metadata:
   name: product
 spec:
+  type: NodePort
   selector:
     app: product
   ports:
   - port: 80
     targetPort: 80
+    name: http
+  - port: 4004
+    name: http-mgm
+    targetPort: 4004

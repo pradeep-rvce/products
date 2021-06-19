@@ -20,7 +20,7 @@ spec:
         - name: SPRING_PROFILES_ACTIVE
           value: "docker"
         - name: SPRING_APPLICATION_NAME
-          value: auth-server          
+          value: auth-server
         - name: SPRING_CONFIG_LOCATION
           value: file:/config-repo/application.yml,file:/config-repo/auth-server.yml
         ports:
@@ -47,3 +47,4 @@ spec:
   ports:
     - port: 80
       targetPort: 80
+      name: http

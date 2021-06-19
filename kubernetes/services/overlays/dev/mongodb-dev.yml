@@ -33,3 +33,4 @@ spec:
     app: mongodb
   ports:
     - port: 27017
+      name: http
