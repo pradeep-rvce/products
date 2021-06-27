@@ -2,9 +2,7 @@
 
 # Print commands to the terminal before execution and stop the script if any error occurs
 set -ex
-Kubectl delete namespace hands-on
 Kubectl create namespace hands-on
-Kubectl delete namespace logging
 Kubectl create namespace logging
 
 kubectl config set-context --current --namespace=hands-on
